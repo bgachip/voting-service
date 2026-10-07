@@ -2,6 +2,7 @@ package hu.bgachip.voting.service;
 
 import hu.bgachip.voting.domain.entity.Vote;
 import hu.bgachip.voting.domain.entity.Voting;
+import hu.bgachip.voting.domain.enums.VotingType;
 import hu.bgachip.voting.dto.request.CreateVotingRequest;
 import hu.bgachip.voting.dto.response.*;
 import hu.bgachip.voting.exception.ResourceNotFoundException;
@@ -17,6 +18,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -67,6 +70,36 @@ public class VotingService {
                 .toList();
 
         return new DailyVotingResponse(votings);
+    }
+
+    @Transactional(readOnly = true)
+    public ParticipationAverageResponse getParticipationAverage(
+            Instant from,
+            Instant to
+    ) {
+        List<Voting> votings =
+                votingRepository.findAllByDateRangeExcludingType(
+                        from,
+                        to,
+                        VotingType.PRESENCE
+                );
+
+        Map<String, Long> participationByRepresentative = votings.stream()
+                .flatMap(voting -> voting.getVotes().stream())
+                .collect(Collectors.groupingBy(
+                        Vote::getRepresentative,
+                        Collectors.counting()
+                ));
+
+        double average = participationByRepresentative.values()
+                .stream()
+                .mapToLong(Long::longValue)
+                .average()
+                .orElse(0.0);
+
+        average = Math.round(average * 100.0) / 100.0;
+
+        return new ParticipationAverageResponse(average);
     }
 
     @Transactional

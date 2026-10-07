@@ -34,4 +34,17 @@ public interface VotingRepository extends JpaRepository<Voting, Long> {
             @Param("from") Instant from,
             @Param("to") Instant to
     );
+
+    @Query("""
+        SELECT v
+        FROM Voting v
+        WHERE v.dateTime >= :from
+          AND v.dateTime <= :to
+          AND v.type <> :excludedType
+        """)
+    List<Voting> findAllByDateRangeExcludingType(
+            @Param("from") Instant from,
+            @Param("to") Instant to,
+            @Param("excludedType") VotingType excludedType
+    );
 }

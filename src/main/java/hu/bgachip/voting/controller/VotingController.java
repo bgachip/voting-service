@@ -1,10 +1,7 @@
 package hu.bgachip.voting.controller;
 
 import hu.bgachip.voting.dto.request.CreateVotingRequest;
-import hu.bgachip.voting.dto.response.CreateVotingResponse;
-import hu.bgachip.voting.dto.response.DailyVotingResponse;
-import hu.bgachip.voting.dto.response.VoteResponse;
-import hu.bgachip.voting.dto.response.VotingResultResponse;
+import hu.bgachip.voting.dto.response.*;
 import hu.bgachip.voting.service.VotingResultService;
 import hu.bgachip.voting.service.VotingService;
 import jakarta.validation.Valid;
@@ -14,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 @RestController
@@ -51,6 +49,21 @@ public class VotingController {
     ) {
         return ResponseEntity.ok(
                 votingService.getDailyVotings(date)
+        );
+    }
+
+    @GetMapping("/kepviselo-reszvetel-atlag")
+    public ResponseEntity<ParticipationAverageResponse> getParticipationAverage(
+            @RequestParam("kezdet")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            Instant from,
+
+            @RequestParam("veg")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            Instant to
+    ) {
+        return ResponseEntity.ok(
+                votingService.getParticipationAverage(from, to)
         );
     }
 
