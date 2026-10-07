@@ -2,6 +2,7 @@ package hu.bgachip.voting.controller;
 
 import hu.bgachip.voting.dto.request.CreateVotingRequest;
 import hu.bgachip.voting.dto.response.CreateVotingResponse;
+import hu.bgachip.voting.dto.response.VoteResponse;
 import hu.bgachip.voting.service.VotingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,16 @@ import org.springframework.web.bind.annotation.*;
 public class VotingController {
 
     private final VotingService votingService;
+
+    @GetMapping("/szavazat")
+    public ResponseEntity<VoteResponse> getVote(
+            @RequestParam("szavazas") String votingId,
+            @RequestParam("kepviselo") String representative
+    ) {
+        return ResponseEntity.ok(
+                votingService.getVote(votingId, representative)
+        );
+    }
 
     @PostMapping("/szavazas")
     public ResponseEntity<CreateVotingResponse> createVoting(
