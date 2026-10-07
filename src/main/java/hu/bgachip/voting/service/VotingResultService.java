@@ -21,12 +21,15 @@ public class VotingResultService {
 
     @Transactional(readOnly = true)
     public VotingResultResponse getResult(String votingId) {
-
         Voting voting = votingRepository.findByVotingId(votingId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Voting not found: " + votingId
                 ));
 
+        return calculateResult(voting);
+    }
+
+    public VotingResultResponse calculateResult(Voting voting) {
         long yesCount = countVotes(voting, VoteType.YES);
         long noCount = countVotes(voting, VoteType.NO);
         long abstainCount = countVotes(voting, VoteType.ABSTAIN);
