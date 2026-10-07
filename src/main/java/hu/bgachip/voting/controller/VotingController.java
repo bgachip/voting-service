@@ -3,6 +3,8 @@ package hu.bgachip.voting.controller;
 import hu.bgachip.voting.dto.request.CreateVotingRequest;
 import hu.bgachip.voting.dto.response.CreateVotingResponse;
 import hu.bgachip.voting.dto.response.VoteResponse;
+import hu.bgachip.voting.dto.response.VotingResultResponse;
+import hu.bgachip.voting.service.VotingResultService;
 import hu.bgachip.voting.service.VotingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,16 @@ import org.springframework.web.bind.annotation.*;
 public class VotingController {
 
     private final VotingService votingService;
+    private final VotingResultService votingResultService;
+
+    @GetMapping("/eredmeny")
+    public ResponseEntity<VotingResultResponse> getResult(
+            @RequestParam("szavazas") String votingId
+    ) {
+        return ResponseEntity.ok(
+                votingResultService.getResult(votingId)
+        );
+    }
 
     @GetMapping("/szavazat")
     public ResponseEntity<VoteResponse> getVote(
