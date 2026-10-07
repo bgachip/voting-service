@@ -1,12 +1,10 @@
 package hu.bgachip.voting.domain.entity;
 
 import hu.bgachip.voting.domain.enums.ProcedureType;
+import hu.bgachip.voting.domain.enums.VoteType;
 import hu.bgachip.voting.domain.enums.VotingType;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -15,6 +13,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Entity
 @Table(
         name = "votings",
@@ -54,4 +53,24 @@ public class Voting {
             orphanRemoval = true
     )
     private List<Vote> votes = new ArrayList<>();
+
+    public void addVote(String representative, VoteType voteType) {
+        votes.add(new Vote(this, representative, voteType));
+    }
+
+    public Voting(
+            String votingId,
+            Instant dateTime,
+            String subject,
+            VotingType type,
+            ProcedureType procedure,
+            String president
+    ) {
+        this.votingId = votingId;
+        this.dateTime = dateTime;
+        this.subject = subject;
+        this.type = type;
+        this.procedure = procedure;
+        this.president = president;
+    }
 }

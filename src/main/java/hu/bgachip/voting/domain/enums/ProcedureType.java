@@ -1,6 +1,8 @@
 package hu.bgachip.voting.domain.enums;
 
 
+import java.util.Arrays;
+
 public enum ProcedureType {
     NORMAL("n"),
     URGENT("s"),
@@ -15,5 +17,16 @@ public enum ProcedureType {
 
     public String getCode() {
         return code;
+    }
+
+    public static ProcedureType fromCode(String code) {
+        return Arrays.stream(values())
+                .filter(type -> type.code.equals(code))
+                .findFirst()
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Invalid procedure type code: " + code
+                        )
+                );
     }
 }

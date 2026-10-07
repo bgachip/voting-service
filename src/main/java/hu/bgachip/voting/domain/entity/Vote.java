@@ -2,14 +2,12 @@ package hu.bgachip.voting.domain.entity;
 
 import hu.bgachip.voting.domain.enums.VoteType;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Entity
 @Table(
         name = "votes",
@@ -21,6 +19,12 @@ import lombok.Setter;
         }
 )
 public class Vote {
+
+    Vote(Voting voting, String representative, VoteType vote) {
+        this.voting = voting;
+        this.representative = representative;
+        this.vote = vote;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
