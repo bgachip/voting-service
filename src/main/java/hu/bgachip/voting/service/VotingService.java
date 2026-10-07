@@ -2,6 +2,8 @@ package hu.bgachip.voting.service;
 
 import hu.bgachip.voting.domain.entity.Vote;
 import hu.bgachip.voting.domain.entity.Voting;
+import hu.bgachip.voting.domain.enums.ProcedureType;
+import hu.bgachip.voting.domain.enums.VotingResult;
 import hu.bgachip.voting.domain.enums.VotingType;
 import hu.bgachip.voting.dto.request.CreateVotingRequest;
 import hu.bgachip.voting.dto.response.*;
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -102,6 +105,54 @@ public class VotingService {
         return new ParticipationAverageResponse(average);
     }
 
+    @Transactional(readOnly = true)
+    public SpecialProcedureStatisticsResponse getSpecialProcedureStatistics(
+            Instant from,
+            Instant to
+    ) {
+        List<Voting> votings = votingRepository.findAllByDateRange(from, to);
+
+        List<Voting> specialVotings = votings.stream()
+                .filter(voting -> isSpecialProcedure(voting.getProcedure()))
+                .toList();
+
+        List<SpecialProcedureItemResponse> statistics = new ArrayList<>();
+
+        addProcedureStatistics(statistics, specialVotings, ProcedureType.URGENT);
+        addProcedureStatistics(statistics, specialVotings, ProcedureType.EXCEPTIONAL);
+        addProcedureStatistics(statistics, specialVotings, ProcedureType.RULE_DEVIATION);
+
+        long totalAccepted = statistics.stream()
+                .filter(item -> item.result().equals(VotingResult.ACCEPTED.getCode()))
+                .mapToLong(SpecialProcedureItemResponse::count)
+                .sum();
+
+        long totalRejected = statistics.stream()
+                .filter(item -> item.result().equals(VotingResult.REJECTED.getCode()))
+                .mapToLong(SpecialProcedureItemResponse::count)
+                .sum();
+
+        statistics.add(new SpecialProcedureItemResponse(
+                "összes",
+                VotingResult.ACCEPTED.getCode(),
+                totalAccepted
+        ));
+
+        statistics.add(new SpecialProcedureItemResponse(
+                "összes",
+                VotingResult.REJECTED.getCode(),
+                totalRejected
+        ));
+
+        statistics.add(new SpecialProcedureItemResponse(
+                "összes",
+                "összes",
+                totalAccepted + totalRejected
+        ));
+
+        return new SpecialProcedureStatisticsResponse(statistics);
+    }
+
     @Transactional
     public CreateVotingResponse createVoting(CreateVotingRequest request) {
 
@@ -140,5 +191,47 @@ public class VotingService {
                 result.representativeCount(),
                 votes
         );
+    }
+
+    private boolean isSpecialProcedure(ProcedureType procedure) {
+        return procedure == ProcedureType.URGENT
+                || procedure == ProcedureType.EXCEPTIONAL
+                || procedure == ProcedureType.RULE_DEVIATION;
+    }
+
+    private void addProcedureStatistics(
+            List<SpecialProcedureItemResponse> statistics,
+            List<Voting> votings,
+            ProcedureType procedure
+    ) {
+        long accepted = votings.stream()
+                .filter(voting -> voting.getProcedure() == procedure)
+                .filter(voting ->
+                        votingResultService.calculateResult(voting)
+                                .result()
+                                .equals(VotingResult.ACCEPTED.getCode())
+                )
+                .count();
+
+        long rejected = votings.stream()
+                .filter(voting -> voting.getProcedure() == procedure)
+                .filter(voting ->
+                        votingResultService.calculateResult(voting)
+                                .result()
+                                .equals(VotingResult.REJECTED.getCode())
+                )
+                .count();
+
+        statistics.add(new SpecialProcedureItemResponse(
+                procedure.getCode(),
+                VotingResult.ACCEPTED.getCode(),
+                accepted
+        ));
+
+        statistics.add(new SpecialProcedureItemResponse(
+                procedure.getCode(),
+                VotingResult.REJECTED.getCode(),
+                rejected
+        ));
     }
 }

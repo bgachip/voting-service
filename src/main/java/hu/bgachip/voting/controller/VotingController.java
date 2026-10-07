@@ -67,6 +67,22 @@ public class VotingController {
         );
     }
 
+    @GetMapping("/kulonleges-eljarasok-szama")
+    public ResponseEntity<SpecialProcedureStatisticsResponse>
+    getSpecialProcedureStatistics(
+            @RequestParam("kezdet")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            Instant from,
+
+            @RequestParam("veg")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            Instant to
+    ) {
+        return ResponseEntity.ok(
+                votingService.getSpecialProcedureStatistics(from, to)
+        );
+    }
+
     @PostMapping("/szavazas")
     public ResponseEntity<CreateVotingResponse> createVoting(
             @Valid @RequestBody CreateVotingRequest request
