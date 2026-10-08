@@ -162,7 +162,7 @@ public class VotingService {
 
         Voting voting = votingMapper.toEntity(request, votingId);
 
-        votingRepository.save(voting);
+        votingRepository.saveAndFlush(voting);
 
         return new CreateVotingResponse(votingId);
     }
@@ -204,34 +204,25 @@ public class VotingService {
             List<Voting> votings,
             ProcedureType procedure
     ) {
-        long accepted = votings.stream()
+        Map<String, Long> resultCounts = votings.stream()
                 .filter(voting -> voting.getProcedure() == procedure)
-                .filter(voting ->
-                        votingResultService.calculateResult(voting)
-                                .result()
-                                .equals(VotingResult.ACCEPTED.getCode())
-                )
-                .count();
-
-        long rejected = votings.stream()
-                .filter(voting -> voting.getProcedure() == procedure)
-                .filter(voting ->
-                        votingResultService.calculateResult(voting)
-                                .result()
-                                .equals(VotingResult.REJECTED.getCode())
-                )
-                .count();
+                .collect(Collectors.groupingBy(
+                        voting -> votingResultService
+                                .calculateResult(voting)
+                                .result(),
+                        Collectors.counting()
+                ));
 
         statistics.add(new SpecialProcedureItemResponse(
                 procedure.getCode(),
                 VotingResult.ACCEPTED.getCode(),
-                accepted
+                resultCounts.getOrDefault(VotingResult.ACCEPTED.getCode(), 0L)
         ));
 
         statistics.add(new SpecialProcedureItemResponse(
                 procedure.getCode(),
                 VotingResult.REJECTED.getCode(),
-                rejected
+                resultCounts.getOrDefault(VotingResult.REJECTED.getCode(), 0L)
         ));
     }
 }

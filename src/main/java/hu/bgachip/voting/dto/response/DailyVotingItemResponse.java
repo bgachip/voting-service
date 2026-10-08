@@ -1,5 +1,6 @@
 package hu.bgachip.voting.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.Instant;
@@ -17,6 +18,7 @@ public record DailyVotingItemResponse(
         String type,
 
         @JsonProperty("eljaras")
+        @JsonInclude(JsonInclude.Include.NON_NULL)
         String procedure,
 
         @JsonProperty("elnok")

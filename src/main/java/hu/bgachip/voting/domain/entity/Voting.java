@@ -34,7 +34,7 @@ public class Voting {
     @Column(name = "date_time", nullable = false)
     private Instant dateTime;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String subject;
 
     @Enumerated(EnumType.STRING)

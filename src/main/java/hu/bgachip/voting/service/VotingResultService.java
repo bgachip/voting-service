@@ -64,20 +64,25 @@ public class VotingResultService {
 
     private int getRepresentativeCount(Voting voting) {
 
-        if (voting.getType() == VotingType.PRESENCE) {
-            return voting.getVotes().size();
-        }
+        return switch (voting.getType()) {
 
-        Voting presenceVoting = votingRepository
-                .findFirstByTypeAndDateTimeBeforeOrderByDateTimeDesc(
-                        VotingType.PRESENCE,
-                        voting.getDateTime()
-                )
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "No preceding presence voting found."
-                ));
+            case PRESENCE -> voting.getVotes().size();
 
-        return presenceVoting.getVotes().size();
+            case QUALIFIED_MAJORITY -> TOTAL_REPRESENTATIVES;
+
+            case SIMPLE_MAJORITY -> {
+                Voting presenceVoting = votingRepository
+                        .findFirstByTypeAndDateTimeBeforeOrderByDateTimeDesc(
+                                VotingType.PRESENCE,
+                                voting.getDateTime()
+                        )
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                "No preceding presence voting found."
+                        ));
+
+                yield presenceVoting.getVotes().size();
+            }
+        };
     }
 
     private boolean isAccepted(
@@ -86,14 +91,9 @@ public class VotingResultService {
             int representativeCount
     ) {
         return switch (voting.getType()) {
-
             case PRESENCE -> true;
-
-            case SIMPLE_MAJORITY ->
+            case SIMPLE_MAJORITY, QUALIFIED_MAJORITY ->
                     yesCount > representativeCount / 2;
-
-            case QUALIFIED_MAJORITY ->
-                    yesCount > TOTAL_REPRESENTATIVES / 2;
         };
     }
 }

@@ -23,7 +23,7 @@ public record CreateVotingRequest(
         @NotBlank
         String type,
 
-        @JsonProperty("eljaras")
+        @JsonProperty(value = "eljaras")
         String procedure,
 
         @JsonProperty("elnok")
@@ -32,6 +32,7 @@ public record CreateVotingRequest(
 
         @JsonProperty("szavazatok")
         @NotEmpty
-        List<@Valid VoteRequest> votes
+        List<@NotNull @Valid VoteRequest> votes
 
-) {}
+) {
+}
